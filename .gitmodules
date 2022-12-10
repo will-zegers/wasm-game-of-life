@@ -1,0 +1,3 @@
+[submodule "www"]
+	path = www
+	url = git@github.com:will-zegers/create-wasm-app.git
