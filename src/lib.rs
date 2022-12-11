@@ -214,6 +214,19 @@ impl Universe {
             self.cells[idx] = Cell::Alive;
         }
     }
+
+    pub fn add_pulsar(&mut self, row: u32, column: u32) {
+        self.draw_pulsar_pattern_1(row - 6, column);
+        self.draw_pulsar_pattern_2(row - 4, column);
+        self.draw_pulsar_pattern_2(row - 3, column);
+        self.draw_pulsar_pattern_2(row - 2, column);
+        self.draw_pulsar_pattern_1(row - 1, column);
+        self.draw_pulsar_pattern_1(row + 1, column);
+        self.draw_pulsar_pattern_2(row + 2, column);
+        self.draw_pulsar_pattern_2(row + 3, column);
+        self.draw_pulsar_pattern_2(row + 4, column);
+        self.draw_pulsar_pattern_1(row + 6, column);
+    }
 }
 
 impl Universe {
@@ -236,6 +249,34 @@ impl Universe {
             }
         }
         count
+    }
+
+    fn draw_pulsar_pattern_1(&mut self, row: u32, column: u32) {
+        let pattern_indices = vec![
+            self.get_index(row, column - 4),
+            self.get_index(row, column - 3),
+            self.get_index(row, column - 2),
+            self.get_index(row, column + 2),
+            self.get_index(row, column + 3),
+            self.get_index(row, column + 4),
+        ];
+
+        for idx in pattern_indices {
+            self.cells[idx] = Cell::Alive;
+        }
+    }
+
+    fn draw_pulsar_pattern_2(&mut self, row: u32, column: u32) {
+        let pattern_indices = vec![
+            self.get_index(row, column - 6),
+            self.get_index(row, column - 1),
+            self.get_index(row, column + 1),
+            self.get_index(row, column + 6),
+        ];
+
+        for idx in pattern_indices {
+            self.cells[idx] = Cell::Alive;
+        }
     }
 }
 
