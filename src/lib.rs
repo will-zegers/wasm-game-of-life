@@ -1,5 +1,6 @@
-use std::fmt;
+use rand::distributions::{Distribution, Standard};
 use rand::Rng;
+use std::fmt;
 
 mod utils;
 
@@ -10,6 +11,25 @@ use wasm_bindgen::prelude::*;
 #[cfg(feature = "wee_alloc")]
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
+
+#[derive(PartialEq)]
+enum GliderOrientation {
+    TopLeft,
+    TopRight,
+    BottomLeft,
+    BottomRight,
+}
+
+impl Distribution<GliderOrientation> for Standard {
+    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> GliderOrientation {
+        match rng.gen_range(0..4) {
+            0 => GliderOrientation::TopLeft,
+            1 => GliderOrientation::TopRight,
+            2 => GliderOrientation::BottomLeft,
+            _ => GliderOrientation::BottomRight,
+        }
+    }
+}
 
 #[wasm_bindgen]
 #[repr(u8)]
@@ -85,7 +105,11 @@ impl Universe {
         let mut rng = rand::thread_rng();
         self.cells = (0..self.width * self.height)
             .map(|_i| {
-                if rng.gen::<f32>() > 0.2 { Cell::Dead } else { Cell::Alive }
+                if rng.gen::<f32>() > 0.2 {
+                    Cell::Dead
+                } else {
+                    Cell::Alive
+                }
             })
             .collect();
     }
@@ -161,13 +185,31 @@ impl Universe {
     }
 
     pub fn add_glider(&mut self, row: u32, column: u32) {
-        let glider_indices = vec![
-            self.get_index(row - 1, column),
-            self.get_index(row, column + 1),
-            self.get_index(row + 1, column - 1),
-            self.get_index(row + 1, column ),
-            self.get_index(row + 1, column + 1),
-        ];
+        let mut rng = rand::thread_rng();
+        let orientation = rng.gen::<GliderOrientation>();
+        let glider_indices = match orientation {
+            GliderOrientation::BottomRight | GliderOrientation::BottomLeft => vec![
+                self.get_index(row - 1, column),
+                match orientation {
+                    GliderOrientation::BottomRight => self.get_index(row, column + 1),
+                    _ => self.get_index(row, column - 1),
+                },
+                self.get_index(row + 1, column - 1),
+                self.get_index(row + 1, column),
+                self.get_index(row + 1, column + 1),
+            ],
+            GliderOrientation::TopRight | GliderOrientation::TopLeft => vec![
+                self.get_index(row + 1, column),
+                match orientation {
+                    GliderOrientation::TopRight => self.get_index(row, column + 1),
+                    _ => self.get_index(row, column - 1),
+                },
+                self.get_index(row - 1, column - 1),
+                self.get_index(row - 1, column),
+                self.get_index(row - 1, column + 1),
+            ],
+        };
+
         for idx in glider_indices {
             self.cells[idx] = Cell::Alive;
         }
