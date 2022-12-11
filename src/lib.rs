@@ -1,4 +1,5 @@
 use std::fmt;
+use rand::Rng;
 
 mod utils;
 
@@ -16,6 +17,15 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 pub enum Cell {
     Dead = 0,
     Alive = 1,
+}
+
+impl Cell {
+    fn toggle(&mut self) {
+        *self = match *self {
+            Cell::Dead => Cell::Alive,
+            Cell::Alive => Cell::Dead,
+        };
+    }
 }
 
 #[wasm_bindgen]
@@ -45,6 +55,8 @@ impl Universe {
 #[wasm_bindgen]
 impl Universe {
     pub fn new() -> Self {
+        utils::set_panic_hook();
+
         let width = 64;
         let height = 64;
 
@@ -63,6 +75,19 @@ impl Universe {
             height,
             cells,
         }
+    }
+
+    pub fn clear(&mut self) {
+        self.cells = vec![Cell::Dead; (self.width * self.height) as usize];
+    }
+
+    pub fn randomize(&mut self) {
+        let mut rng = rand::thread_rng();
+        self.cells = (0..self.width * self.height)
+            .map(|_i| {
+                if rng.gen::<f32>() > 0.2 { Cell::Dead } else { Cell::Alive }
+            })
+            .collect();
     }
 
     pub fn width(&self) -> u32 {
@@ -128,6 +153,11 @@ impl Universe {
 
     pub fn render(&self) -> String {
         self.to_string()
+    }
+
+    pub fn toggle_cell(&mut self, row: u32, column: u32) {
+        let idx = self.get_index(row, column);
+        self.cells[idx].toggle();
     }
 }
 
