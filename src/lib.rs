@@ -159,6 +159,19 @@ impl Universe {
         let idx = self.get_index(row, column);
         self.cells[idx].toggle();
     }
+
+    pub fn add_glider(&mut self, row: u32, column: u32) {
+        let glider_indices = vec![
+            self.get_index(row - 1, column),
+            self.get_index(row, column + 1),
+            self.get_index(row + 1, column - 1),
+            self.get_index(row + 1, column ),
+            self.get_index(row + 1, column + 1),
+        ];
+        for idx in glider_indices {
+            self.cells[idx] = Cell::Alive;
+        }
+    }
 }
 
 impl Universe {
